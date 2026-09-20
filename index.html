@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D3B2A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trainer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Trainer-Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1EC;--surface:#FFFFFF;--surface2:#F3F6F2;--ink:#12241B;--muted:#5A6A61;--line:#D9E2DB;
+  --brand:#0F5A3F;--on-brand:#FFFFFF;--pitch:#0D3B2A;--pitch2:#0F4130;--amber:#F5C04A;--on-amber:#231A03;
+  --c-booked:#2F6FB5;--c-confirmed:#178A5B;--c-done:#647770;--c-cancelled:#C93F37;--c-open:#B9820F;
+  --p-paid:#178A5B;--p-open:#B9820F;--p-partial:#2F6FB5;--p-refund:#7A5BC4;
+  --danger:#C93F37;--shadow:0 10px 30px -12px rgba(10,40,28,.35);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1410;--surface:#111F19;--surface2:#172A21;--ink:#E6EFE9;--muted:#93A79B;--line:#23392E;
+    --brand:#4CCB94;--on-brand:#052517;--pitch:#0E3626;--pitch2:#103B2A;
+    --c-booked:#6AA8E6;--c-confirmed:#45C68E;--c-done:#8FA399;--c-cancelled:#F0736B;--c-open:#F2B84A;
+    --p-paid:#45C68E;--p-open:#F2B84A;--p-partial:#6AA8E6;--p-refund:#AE96EE;--danger:#F0736B;--shadow:0 10px 30px -12px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1410;--surface:#111F19;--surface2:#172A21;--ink:#E6EFE9;--muted:#93A79B;--line:#23392E;
+  --brand:#4CCB94;--on-brand:#052517;--pitch:#0E3626;--pitch2:#103B2A;
+  --c-booked:#6AA8E6;--c-confirmed:#45C68E;--c-done:#8FA399;--c-cancelled:#F0736B;--c-open:#F2B84A;
+  --p-paid:#45C68E;--p-open:#F2B84A;--p-partial:#6AA8E6;--p-refund:#AE96EE;--danger:#F0736B;--shadow:0 10px 30px -12px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 'Barlow','Helvetica Neue',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body.lock{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.num,h1,h2,h3{font-family:'Barlow Condensed','Arial Narrow','Helvetica Neue',system-ui,sans-serif}
+.ic{display:block;flex:none}
+.only-m{display:inline-flex}.only-d{display:none}
+
+/* layout */
+#app{min-height:100vh}
+.side{display:none}
+main{padding:14px 14px 104px;max-width:1120px;margin:0 auto}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11.5px;font-weight:500;color:var(--muted);border-radius:12px}
+.tabbar button.on{color:var(--brand);font-weight:600}
+.tabbar button.on .ic{stroke-width:2.3}
+@media (min-width:1000px){
+  #app{display:grid;grid-template-columns:250px 1fr}
+  .side{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;padding:22px 16px;background:var(--pitch);color:#E7F1EA}
+  .tabbar,.only-m{display:none}.only-d{display:inline-flex}
+  main{padding:28px 32px 60px;width:100%}
+}
+.side .logo{font:700 26px/1 'Barlow Condensed',sans-serif;display:flex;gap:8px;align-items:center;margin-bottom:2px}
+.side .who{font-size:14px;color:#A8C3B4;margin-bottom:18px}
+.side .nav{display:flex;align-items:center;gap:12px;background:none;border:0;color:#CFE2D6;padding:11px 12px;border-radius:12px;font-weight:500;text-align:left;width:100%}
+.side .nav:hover{background:rgba(255,255,255,.07)}
+.side .nav.on{background:rgba(255,255,255,.13);color:#fff;font-weight:600}
+.side .sp{flex:1}
+
+/* head */
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:6px 0 16px}
+.head h1{font-size:34px;line-height:1.05;font-weight:700}
+.head .sub{color:var(--muted);font-size:14.5px;margin-top:4px}
+.ha{display:flex;gap:8px;align-items:center}
+.iconbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}
+.iconbtn:active{transform:scale(.96)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:14px;border:1px solid transparent;font-weight:600;font-size:16px;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn.brand{background:var(--brand);color:var(--on-brand)}
+.btn.amber{background:var(--amber);color:var(--on-amber)}
+.btn.ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.soft-danger{background:transparent;border-color:color-mix(in srgb,var(--danger) 45%,var(--line));color:var(--danger)}
+.btn.big{min-height:54px;font-size:17px;padding:0 24px}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px;border-radius:10px}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card h2{font-size:24px;font-weight:700;margin-bottom:10px;line-height:1.1}
+.card h2 small{font:500 14px 'Barlow',sans-serif;color:var(--muted);margin-left:6px}
+.grid{display:grid;gap:14px}
+.stack{display:grid;gap:14px}
+@media (min-width:1000px){.two{grid-template-columns:1.55fr 1fr;align-items:start}.two-eq{grid-template-columns:1fr 1fr;align-items:start}}
+.muted{color:var(--muted)}
+.none{color:var(--muted);font-size:14px;padding:4px 2px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:26px;padding:20px 18px 18px;color:#E9F3EC;background:repeating-linear-gradient(90deg,var(--pitch) 0 46px,var(--pitch2) 46px 92px);box-shadow:var(--shadow)}
+.hero .lines{position:absolute;right:-30px;top:-40px;width:340px;height:260px;stroke:rgba(255,255,255,.13);fill:none;stroke-width:2;pointer-events:none}
+.hero>*{position:relative}
+.hello{font:700 clamp(30px,7.4vw,44px)/1.05 'Barlow Condensed',sans-serif}
+.kw{color:#B5CDBF;font-size:15px;margin:6px 0 18px}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.16);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.16)}
+.cell{background:rgba(5,25,17,.82);padding:14px 14px 12px;min-width:0}
+.cell .l{font-size:13.5px;color:#A9C5B6}
+.cell .n{font:600 clamp(40px,10.5vw,58px)/1 'Barlow Condensed',sans-serif;color:var(--amber);margin:4px 0 2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell .s{font-size:12.5px;color:#93B1A1}
+.hero .cta{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+@media (min-width:700px){.board{grid-template-columns:repeat(4,1fr)}.hero{padding:26px 26px 22px}}
+
+/* strips */
+.strip{display:flex;align-items:center;gap:14px;text-align:left;width:100%}
+.strip .big{font:700 30px/1 'Barlow Condensed',sans-serif}
+.strip .lab{font-size:14px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;background:color-mix(in srgb,var(--amber) 28%,transparent);font-size:22px;flex:none}
+.link-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;color:inherit}
+
+/* chips & entries */
+.st-booked{--c:var(--c-booked)}.st-confirmed{--c:var(--c-confirmed)}.st-done{--c:var(--c-done)}.st-cancelled{--c:var(--c-cancelled)}.st-open{--c:var(--c-open)}
+.p-paid{--c:var(--p-paid)}.p-open{--c:var(--p-open)}.p-partial{--c:var(--p-partial)}.p-refund{--c:var(--p-refund)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--c) 15%,transparent);color:color-mix(in srgb,var(--c) 78%,var(--ink));white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.chip.pay{background:transparent;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.chip.pay::before{border-radius:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.fchips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;margin:0 -2px;scrollbar-width:none}
+.fchip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:14px;font-weight:500;display:inline-flex;gap:7px;align-items:center}
+.fchip b{font-weight:700}
+.fchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fchip[class*="st-"]::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.day{margin-bottom:10px}
+.day h3{font-size:21px;font-weight:700;display:flex;align-items:baseline;gap:8px;margin:10px 0 2px}
+.day h3 small{font:500 14px 'Barlow',sans-serif;color:var(--muted)}
+.day h3 em{font:600 12px 'Barlow',sans-serif;font-style:normal;background:var(--amber);color:var(--on-amber);padding:2px 8px;border-radius:99px}
+.ent{appearance:none;text-align:left;display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;width:100%;padding:10px 12px;margin:6px 0;border-radius:12px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--c)}
+.ent .t{display:flex;flex-direction:column;line-height:1.15}
+.ent .t b{font:700 19px 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+.ent .t i{font-style:normal;font-size:12.5px;color:var(--muted)}
+.ent .m{min-width:0;display:flex;flex-direction:column}
+.ent .m strong{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .m small{color:var(--muted);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.ent.st-cancelled{opacity:.72}.ent.st-cancelled .m strong{text-decoration:line-through}
+.ent.st-open{border-style:dashed;border-left-style:solid;background:transparent}
+.ent.st-done{background:var(--surface2)}
+@media (min-width:1000px){
+  .weekgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:start}
+  .weekgrid .day h3{font-size:18px}.weekgrid .day h3 small{display:none}
+  .weekgrid .ent{grid-template-columns:1fr;gap:2px;padding:8px 9px}
+  .weekgrid .ent .t{flex-direction:row;gap:4px;align-items:baseline}
+  .weekgrid .ent .t i::before{content:"–";margin-right:3px}
+  .weekgrid .ent .r{display:none}
+  .weekgrid .day.today h3{color:var(--brand)}
+}
+.day.today>h3{color:var(--brand)}
+
+/* segmented, toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;padding:7px 14px;border-radius:9px;font-weight:500;font-size:14.5px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.pnav{display:inline-flex;align-items:center;gap:8px}
+.pnav b{font-weight:600;min-width:150px;text-align:center;font-size:15px}
+.pnav .iconbtn{width:38px;height:38px}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+@media (min-width:700px){.filters{grid-template-columns:repeat(4,1fr)}}
+select,input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],input[type=tel],input[type=search],textarea{width:100%;min-height:46px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:16px}
+textarea{min-height:84px;resize:vertical}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23889' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+/* booking cards */
+.bk{appearance:none;text-align:left;width:100%;display:block;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+.bk.st-cancelled{opacity:.78}
+.bk .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.bk .nm{font-weight:600;font-size:17px;line-height:1.25}
+.bk .nm small{font-weight:400;color:var(--muted);font-size:14px;margin-left:4px}
+.bk .when{margin-top:6px;font-weight:500}
+.bk .when span{color:var(--muted);font-weight:400}
+.bk .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;color:var(--muted);font-size:14.5px}
+.bk .row b{color:var(--ink);font:700 22px 'Barlow Condensed',sans-serif}
+.bk .par{font-size:13.5px;color:var(--muted);margin-top:6px}
+.bk .note{font-size:13.5px;margin-top:6px;background:var(--surface2);padding:6px 9px;border-radius:9px}
+.sumline{color:var(--muted);font-size:14.5px;margin:2px 0 12px}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:16px}
+.empty b{display:block;color:var(--ink);font:700 22px 'Barlow Condensed',sans-serif;margin-bottom:4px}
+
+/* kids */
+.kid{appearance:none;text-align:left;width:100%;display:grid;grid-template-columns:46px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;align-items:center}
+.av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--brand) 16%,transparent);color:var(--brand);font:700 18px 'Barlow Condensed',sans-serif}
+.kid .n{font-weight:600}.kid .n small{font-weight:400;color:var(--muted);margin-left:5px}
+.kid .p{font-size:13.5px;color:var(--muted)}
+.kid .st{display:flex;gap:16px;margin-top:6px;font-size:13px;color:var(--muted)}
+.kid .st b{display:block;color:var(--ink);font:700 18px 'Barlow Condensed',sans-serif}
+.kidgrid{display:grid;gap:0}
+@media (min-width:700px){.kidgrid{grid-template-columns:1fr 1fr;column-gap:12px}}
+.search{margin-bottom:12px}
+
+/* earnings */
+.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 12px 10px}
+.kpi .l{font-size:13px;color:var(--muted)}
+.kpi .n{font:700 clamp(26px,7vw,40px)/1.05 'Barlow Condensed',sans-serif;margin-top:3px;white-space:nowrap}
+.kpi.main{background:var(--pitch);color:#E9F3EC;border-color:transparent}.kpi.main .l{color:#A9C5B6}.kpi.main .n{color:var(--amber)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (min-width:700px){.mgrid.four{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--surface2);border-radius:12px;padding:10px 12px}
+.tile .l{font-size:13px;color:var(--muted)}.tile .n{font:700 26px/1.1 'Barlow Condensed',sans-serif}
+.vbars{display:flex;align-items:stretch;gap:5px;height:190px;padding-top:6px}
+.vb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+.vb .bw{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.vb .bar{width:78%;max-width:34px;background:color-mix(in srgb,var(--brand) 55%,var(--surface2));border-radius:6px 6px 2px 2px;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.vb.cur .bar{background:var(--brand)}
+.vb .vv{font-size:10.5px;color:var(--muted);height:15px;white-space:nowrap}
+.vb .vl{font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap}
+.hbars{display:grid;gap:9px}
+.hb{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:10px;align-items:center;font-size:14.5px}
+.hb .hl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .hbar{height:12px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.hb .hbar i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.hb .hv{font-weight:600;font-variant-numeric:tabular-nums}
+.cmp{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:0}
+.cmp>div{padding:9px 4px;border-bottom:1px solid var(--line);font-size:15px;display:flex;flex-direction:column;justify-content:center}
+.cmp .h{font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px}
+.cmp .v{font:700 24px/1 'Barlow Condensed',sans-serif}
+.cmp .d{font:500 12px 'Barlow',sans-serif;color:var(--muted)}
+.cmp .up{color:var(--c-confirmed)}.cmp .down{color:var(--c-cancelled)}
+.openrow{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.openrow:last-child{border:0}
+.openrow .a{font:700 22px 'Barlow Condensed',sans-serif;text-align:right}
+.openrow small{color:var(--muted)}
+.openrow .who{font-weight:600}
+
+/* calendar */
+.tl{position:relative;margin-top:6px;border-top:1px solid var(--line)}
+.tl .hr{position:absolute;left:0;right:0;border-top:1px solid var(--line)}
+.tl .hr span{position:absolute;left:0;top:-9px;background:var(--bg);padding-right:6px;font-size:12px;color:var(--muted);width:48px}
+.tl .blk{position:absolute;appearance:none;text-align:left;border:1px solid var(--line);border-left:5px solid var(--c);background:var(--surface);border-radius:10px;padding:5px 9px;overflow:hidden;font-size:13.5px;line-height:1.25}
+.tl .blk b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl .blk small{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl .blk.st-cancelled{opacity:.65;text-decoration:line-through}
+.tl .blk.st-open{border-style:dashed;border-left-style:solid;background:transparent}
+.tl .now{position:absolute;left:44px;right:0;border-top:2px solid var(--danger);z-index:2}
+.tl .now::before{content:"";position:absolute;left:-5px;top:-6px;width:9px;height:9px;border-radius:50%;background:var(--danger)}
+.mon{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mon .wd{text-align:center;font-size:12.5px;color:var(--muted);padding:4px 0}
+.mc{appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;min-height:66px;padding:5px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.mc .dn{font-weight:600;font-size:14.5px}
+.mc.oth{opacity:.4}
+.mc.tod{border:2px solid var(--brand)}.mc.tod .dn{color:var(--brand)}
+.mc .dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.mc .dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.mc .cnt{font:700 15px 'Barlow Condensed',sans-serif;color:var(--muted)}
+@media (min-width:700px){.mc{min-height:92px}}
+
+/* modal */
+#modal-root .ov{position:fixed;inset:0;z-index:50;background:rgba(4,16,11,.55);display:flex;align-items:flex-end;justify-content:center}
+#modal-root .sheet{background:var(--surface);width:100%;max-width:600px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+#modal-root .ov.in{animation:fade .18s ease-out}
+#modal-root .ov.in .sheet{animation:rise .26s cubic-bezier(.2,.9,.25,1)}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{transform:translateY(40px);opacity:.6}}
+@media (min-width:700px){#modal-root .ov{align-items:center}#modal-root .sheet{border-radius:24px;padding-bottom:22px}}
+.sh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.sh-head h2{font-size:28px;line-height:1.1;font-weight:700}
+.sh-head p{color:var(--muted);margin-top:3px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:14px 0}
+.kv dt{font-size:12.5px;color:var(--muted)}.kv dd{margin:1px 0 0;font-weight:500}
+.sec{margin-top:16px}
+.sec>h3{font-size:19px;font-weight:700;margin-bottom:8px}
+.person{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface2);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.person b{font-weight:600}.person small{display:block;color:var(--muted)}
+.person .ct{display:flex;gap:8px}
+.person a{display:inline-flex;width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);align-items:center;justify-content:center;color:var(--brand)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btnrow .btn{flex:1 1 auto}
+.segfull{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.segfull button{border:0;background:none;padding:9px 4px;border-radius:9px;font-weight:500;font-size:14px;color:var(--muted)}
+.segfull button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+.segfull.pay button.on{color:color-mix(in srgb,var(--c) 80%,var(--ink))}
+.form{display:grid;gap:12px}
+.form h3{font-size:19px;font-weight:700;margin:8px 0 -2px}
+.fld label{display:block;font-size:13.5px;color:var(--muted);margin-bottom:4px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.alert{background:color-mix(in srgb,var(--danger) 13%,transparent);color:color-mix(in srgb,var(--danger) 75%,var(--ink));border-radius:12px;padding:10px 12px;font-size:14.5px}
+.alert.warn{background:color-mix(in srgb,var(--amber) 28%,transparent);color:var(--ink)}
+.picked{display:flex;flex-wrap:wrap;gap:8px}
+.pk{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--brand) 14%,transparent);border-radius:99px;padding:4px 6px 4px 12px;font-weight:500;font-size:14.5px}
+.pk button{border:0;background:rgba(0,0,0,.1);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:inherit}
+.total{display:flex;justify-content:space-between;background:var(--surface2);padding:10px 12px;border-radius:12px;font-weight:500}
+.total b{font:700 22px 'Barlow Condensed',sans-serif}
+.sw{display:flex;align-items:center;gap:10px;font-weight:500}
+.sw input{width:22px;height:22px;accent-color:var(--brand)}
+.newkid{background:var(--surface2);border-radius:14px;padding:12px;display:grid;gap:10px}
+.conf{margin:6px 0 4px;color:var(--muted)}
+.trow{display:grid;grid-template-columns:1fr 110px 42px;gap:8px;margin-bottom:8px;align-items:center}
+.set{display:grid;gap:14px}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:80;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (min-width:1000px){#toast{bottom:32px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="side" id="side"></aside>
+  <main id="main"></main>
+  <nav class="tabbar" id="tabbar" aria-label="Hauptnavigation"></nav>
+</div>
+<div id="modal-root"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+/* ================= Helfer ================= */
+const $=(s,r)=>(r||document).querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const weekStart=s=>{const d=parse(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return ymd(d)};
+const monthStart=s=>s.slice(0,7)+'-01';
+const monthEnd=s=>s.slice(0,7)+'-31';
+const addMonths=(s,n)=>{const d=parse(monthStart(s));d.setMonth(d.getMonth()+n);return ymd(d)};
+const isoWeek=s=>{const d=parse(s);d.setHours(0,0,0,0);d.setDate(d.getDate()+3-((d.getDay()+6)%7));const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/864e5-3+((w1.getDay()+6)%7))/7)};
+const today=()=>ymd(new Date());
+const nowStr=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const toMin=t=>{const p=(t||'0:0').split(':');return (+p[0])*60+(+p[1]||0)};
+const fromMin=m=>pad(Math.floor(m/60)%24)+':'+pad(m%60);
+const WD=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const WDS=['Mo','Di','Mi','Do','Fr','Sa','So'];
+const MON=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const fmtShort=s=>{const d=parse(s);return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'};
+const fmtDate=(s,y)=>{const d=parse(s);return WD[d.getDay()]+', '+fmtShort(s)+(y?d.getFullYear():'')};
+const eur=new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:2});
+const money=n=>eur.format(Math.round((n||0)*100)/100).replace(/\u00a0/g,' ');
+const compact=n=>n>=1000?(n/1000).toFixed(1).replace('.',',')+'k':String(Math.round(n));
+const fmtH=min=>{const h=min/60;return h.toLocaleString('de-DE',{maximumFractionDigits:1})+' Std.'};
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const byDT=(a,b)=>a.date.localeCompare(b.date)||a.start.localeCompare(b.start);
+const ICON={
+ home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/>',
+ cal:'<rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3.5 10h17"/>',
+ list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+ users:'<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c.4-3.6 3.1-5.5 6.5-5.5s6.1 1.9 6.5 5.5"/><path d="M16 5.2a3.4 3.4 0 010 6.6M18.5 14.9c1.8.7 2.8 2.4 3 5.1"/>',
+ euro:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.6a4.2 4.2 0 100 6.8M7.5 10.8h6.3M7.5 13.2h6.3"/>',
+ gear:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ chevL:'<path d="M14.5 5.5 8 12l6.5 6.5"/>',chevR:'<path d="M9.5 5.5 16 12l-6.5 6.5"/>',
+ x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>',
+ mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/>',
+ trash:'<path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13"/>'
+};
+const ico=(n,s)=>'<svg class="ic" viewBox="0 0 24 24" width="'+(s||22)+'" height="'+(s||22)+'" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>';
+
+/* ================= Speicher ================= */
+const mem={};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]==null?null:mem[k]}},set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+const KEY='trainer-app-v1',THEME_KEY='trainer-app-theme';
+
+/* ================= Demodaten ================= */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const slug=s=>s.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z]/g,'');
+function defaultTypes(){return [
+  {id:'t1',name:'Einzeltraining',price:60},{id:'t2',name:'Zweiertraining',price:40},{id:'t3',name:'Gruppentraining',price:25},
+  {id:'t4',name:'Techniktraining',price:50},{id:'t5',name:'Torwarttraining',price:55},{id:'t6',name:'Probetraining',price:30}
+].map(t=>Object.assign({trainerId:'tr1'},t))}
+function makeDemo(){
+  const rnd=mulberry(20260919);const P=a=>a[Math.floor(rnd()*a.length)];
+  const trainer={id:'tr1',name:'Alex'};
+  const types=defaultTypes();
+  const base=[['Lukas','Müller',11,'Anna Müller','Rechtsfuß, will am Dribbling arbeiten.'],['Jonas','Weber',9,'Sabine Weber',''],['Noah','Schneider',12,'Markus Schneider','Spielt in der U13, Position Innenverteidiger.'],
+   ['Elias','Fischer',10,'Julia Fischer',''],['Ben','Wagner',8,'Thomas Wagner','Sehr schüchtern, braucht Anlaufzeit.'],['Leon','Becker',13,'Claudia Becker',''],
+   ['Finn','Hoffmann',10,'Nadine Hoffmann','Torwart im Verein.'],['Paul','Schulz',9,'Stefan Schulz',''],['Emil','Koch',7,'Katrin Koch','Erst seit dem Frühjahr im Verein.'],
+   ['Luca','Richter',12,'Andrea Richter',''],['Mats','Klein',11,'Oliver Klein','Linksfuß.'],['Tim','Wolf',14,'Petra Wolf','Fokus: Schusstechnik.']];
+  const children=base.map((n,i)=>({id:'c'+(i+1),trainerId:'tr1',firstName:n[0],lastName:n[1],age:n[2],parentName:n[3],
+    phone:'0'+P(['151','160','171','172','176'])+' '+(1000000+Math.floor(rnd()*8999999)),
+    email:slug(n[3].split(' ')[0])+'.'+slug(n[1])+'@example.de',notes:n[4]}));
+  const bookings=[],payments=[];
+  const t0=today(),nowT=nowStr();
+  const y=parse(t0).getFullYear();
+  let start=y+'-01-01';const s2=addDays(t0,-70);if(s2<start)start=s2;
+  start=weekStart(start);
+  const end=addDays(t0,21);
+  const pay=(id,a,d)=>payments.push({id:'p'+payments.length,bookingId:id,amount:a,date:d,trainerId:'tr1'});
+  let n=0;
+  for(let d=start;d<=end;d=addDays(d,1)){
+    const wd=parse(d).getDay();if(wd===0)continue;
+    const slots=wd===6?['09:00','10:00','11:00']:['15:00','16:00','17:00'];
+    slots.forEach(st=>{
+      const r=rnd();
+      const endT=fromMin(toMin(st)+60);
+      if(r>=.64){
+        if(d>t0&&d<=addDays(t0,14)&&r<.74){bookings.push({id:'b'+(++n),trainerId:'tr1',childIds:[],typeId:'t1',date:d,start:st,end:endT,price:60,status:'open',payStatus:'open',notes:''})}
+        return;
+      }
+      const q=rnd();let typeId,k=1;
+      if(q<.44)typeId='t1';else if(q<.64)typeId='t4';else if(q<.78){typeId='t3';k=3}else if(q<.88){typeId='t2';k=2}else if(q<.96)typeId='t5';else typeId='t6';
+      const pool=children.slice();const ids=[];
+      for(let i=0;i<k;i++){ids.push(pool.splice(Math.floor(rnd()*pool.length),1)[0].id)}
+      const price=types.find(t=>t.id===typeId).price;
+      const tot=price*k;
+      let status;
+      if(d<t0)status=rnd()<.07?'cancelled':'done';
+      else if(d===t0)status=st<nowT?'done':'confirmed';
+      else status=rnd()<.04?'cancelled':(rnd()<.6?'confirmed':'booked');
+      const id='b'+(++n);let ps='open';
+      if(status==='done'){
+        const r2=rnd(),old=d<addDays(t0,-21);
+        if(old?r2<.99:r2<.78){ps='paid';pay(id,tot,d)}else if(!old&&r2<.92){ps='open'}else{ps='partial';pay(id,Math.round(tot/2),d)}
+      }else if(status==='cancelled'){if(rnd()<.35){ps='refund';pay(id,tot,d);pay(id,-tot,d)}}
+      else if(status==='confirmed'&&rnd()<.3){ps='paid';pay(id,tot,d)}
+      bookings.push({id:id,trainerId:'tr1',childIds:ids,typeId:typeId,date:d,start:st,end:endT,price:price,status:status,payStatus:ps,
+        notes:rnd()<.12?P(['Bitte Schienbeinschoner mitbringen.','Fokus: Ballannahme.','Eltern bleiben vor Ort.','Platz 2, Kunstrasen.']):''});
+    });
+  }
+  return {v:1,trainer:trainer,types:types,children:children,bookings:bookings,payments:payments};
+}
+function emptyDb(){return {v:1,trainer:{id:'tr1',name:'Trainer'},types:defaultTypes(),children:[],bookings:[],payments:[]}}
+function loadDb(){
+  try{const raw=store.get(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.bookings)&&Array.isArray(d.children)&&Array.isArray(d.types)&&d.trainer)return d}}catch(e){}
+  return emptyDb();
+}
+
+/* ================= Zustand ================= */
+let db=loadDb();
+let paidCache=null;
+let modals=[];
+let fs=null;
+const ui={page:'dashboard',wf:'',calView:'week',calDate:today(),q:'',
+  bk:{period:'month',anchor:today(),child:'',type:'',pay:'',status:''},
+  earn:{period:'month',anchor:today(),child:'',type:''}};
+let theme=store.get(THEME_KEY)||'auto';
+function applyTheme(){const r=document.documentElement;if(theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',theme)}
+function save(){store.set(KEY,JSON.stringify(db))}
+
+/* ================= Domänenlogik ================= */
+const STATUS={booked:'Gebucht',confirmed:'Bestätigt',done:'Absolviert',cancelled:'Abgesagt',open:'Frei'};
+const PAY={paid:'Bezahlt',open:'Zahlung offen',partial:'Teilweise bezahlt',refund:'Erstattung'};
+const counted=b=>b.status==='booked'||b.status==='confirmed'||b.status==='done';
+const child=id=>db.children.find(c=>c.id===id);
+const typeOf=id=>db.types.find(t=>t.id===id);
+const getB=id=>db.bookings.find(b=>b.id===id);
+const cname=c=>c.firstName+' '+c.lastName;
+const kidsOf=b=>b.childIds.map(child).filter(Boolean);
+const namesFull=b=>b.status==='open'&&!b.childIds.length?'Freier Termin':(kidsOf(b).map(cname).join(', ')||'–');
+const namesShort=b=>{if(b.status==='open'&&!b.childIds.length)return 'Freier Termin';const k=kidsOf(b);if(!k.length)return '–';const f=k.map(c=>c.firstName+' '+c.lastName.charAt(0)+'.');return f.length>2?f.slice(0,2).join(', ')+' +'+(f.length-2):f.join(', ')};
+const total=b=>(b.price||0)*Math.max(1,b.childIds.length);
+const dur=b=>Math.max(0,toMin(b.end)-toMin(b.start));
+function paidOf(id){if(!paidCache){paidCache={};db.payments.forEach(p=>{paidCache[p.bookingId]=(paidCache[p.bookingId]||0)+p.amount})}return Math.round((paidCache[id]||0)*100)/100}
+const dueOf=b=>counted(b)&&(b.payStatus==='open'||b.payStatus==='partial')?Math.max(0,total(b)-paidOf(b.id)):0;
+function applyPay(b,status,amt){
+  const prev=paidOf(b.id),tot=total(b),day=today();
+  if(status==='paid'&&b.payStatus==='paid'&&Math.abs(prev-tot)<.005)return;
+  db.payments=db.payments.filter(p=>p.bookingId!==b.id);paidCache=null;
+  const add=a=>db.payments.push({id:uid(),bookingId:b.id,amount:a,date:day,trainerId:db.trainer.id});
+  if(status==='paid')add(tot);
+  else if(status==='partial'){const a=Math.min(Math.max(amt||0,0),tot);if(a<=0)status='open';else if(a>=tot){status='paid';add(tot)}else add(a)}
+  else if(status==='refund'){if(prev>0){add(prev);add(-prev)}}
+  b.payStatus=status;paidCache=null;
+}
+function inScope(b,o){
+  if(o.typeId&&b.typeId!==o.typeId)return false;
+  if(o.childId&&b.childIds.indexOf(o.childId)<0)return false;
+  return true;
+}
+function stats(from,to,o){
+  o=o||{};let trainings=0,minutes=0,income=0,open=0,paidCount=0;const kids=new Set();
+  db.bookings.forEach(b=>{
+    if(!counted(b)||b.date<from||b.date>to||!inScope(b,o))return;
+    const f=o.childId?1/b.childIds.length:1;
+    trainings++;minutes+=dur(b);
+    b.childIds.forEach(id=>{if(!o.childId||id===o.childId)kids.add(id)});
+    income+=paidOf(b.id)*f;open+=dueOf(b)*f;if(b.payStatus==='paid')paidCount++;
+  });
+  const k=kids.size;
+  return {trainings:trainings,kids:k,minutes:minutes,income:income,open:open,paidCount:paidCount,avgT:trainings?income/trainings:0,avgK:k?income/k:0};
+}
+function openList(){return db.bookings.filter(b=>dueOf(b)>0).sort(byDT)}
+function nextBooking(){
+  const t=today(),n=nowStr();
+  return db.bookings.filter(b=>(b.status==='booked'||b.status==='confirmed')&&(b.date>t||(b.date===t&&b.end>n))).sort(byDT)[0]||null;
+}
+function childStats(id){
+  const t=today();let n=0,spent=0,last='',next='';
+  db.bookings.forEach(b=>{
+    if(!counted(b)||b.childIds.indexOf(id)<0)return;
+    n++;spent+=paidOf(b.id)/b.childIds.length;
+    if(b.date<=t&&b.date>last)last=b.date;
+    if(b.date>t&&(!next||b.date<next))next=b.date;
+  });
+  return {n:n,spent:spent,last:last,next:next};
+}
+function rangeOf(p,a){
+  if(p==='week'){const s=weekStart(a),e=addDays(s,6);return [s,e,'KW '+isoWeek(a)+' · '+fmtShort(s)+'–'+fmtShort(e)+parse(e).getFullYear()]}
+  if(p==='month'){const d=parse(a);return [monthStart(a),monthEnd(a),MON[d.getMonth()]+' '+d.getFullYear()]}
+  if(p==='year'){const y=a.slice(0,4);return [y+'-01-01',y+'-12-31',y]}
+  return ['0000-01-01','9999-12-31','Alle Zeiträume'];
+}
+function shiftAnchor(p,a,dir){
+  if(p==='week')return addDays(a,7*dir);
+  if(p==='month')return addMonths(a,dir);
+  if(p==='year'){const d=parse(a);d.setFullYear(d.getFullYear()+dir);return ymd(d)}
+  return a;
+}
+
+/* ================= UI-Bausteine ================= */
+const chip=s=>'<span class="chip st-'+s+'">'+STATUS[s]+'</span>';
+function payChip(b){
+  if(b.status==='open')return '';
+  if(b.status==='cancelled')return b.payStatus==='refund'?'<span class="chip pay p-refund">Erstattung</span>':'';
+  const s=b.payStatus;let l=PAY[s];
+  if(s==='partial')l='Teilweise '+money(paidOf(b.id));
+  return '<span class="chip pay p-'+s+'">'+esc(l)+'</span>';
+}
+function head(title,sub,actions){
+  return '<header class="head"><div><h1>'+title+'</h1>'+(sub?'<p class="sub">'+sub+'</p>':'')+'</div><div class="ha">'+(actions||'')+'<button class="iconbtn only-m" data-a="go" data-p="settings" aria-label="Einstellungen">'+ico('gear')+'</button></div></header>';
+}
+const newBtn='<button class="btn brand" data-a="newBooking">'+ico('plus',20)+'Neue Buchung</button>';
+function ent(b){
+  const t=typeOf(b.typeId);
+  const sub='⚽ '+(t?t.name:'Training')+' · '+(b.status==='open'?money(b.price)+' pro Kind':money(total(b)));
+  return '<button class="ent st-'+b.status+'" data-a="open" data-id="'+b.id+'"><span class="t"><b>'+b.start+'</b><i>'+b.end+'</i></span><span class="m"><strong>'+esc(namesShort(b))+'</strong><small>'+esc(sub)+'</small></span><span class="r">'+chip(b.status)+payChip(b)+'</span></button>';
+}
+function weekList(ws,filter){
+  const t=today();let h='';
+  for(let i=0;i<7;i++){
+    const d=addDays(ws,i);
+    const items=db.bookings.filter(b=>b.date===d&&(!filter||b.status===filter)).sort(byDT);
+    h+='<section class="day'+(d===t?' today':'')+'"><h3>'+WD[parse(d).getDay()]+' <small>'+fmtShort(d)+'</small>'+(d===t?'<em>Heute</em>':'')+'</h3>'+(items.length?items.map(ent).join(''):'<p class="none">'+(filter?'–':'Kein Training')+'</p>')+'</section>';
+  }
+  return h;
+}
+function weekChips(ws){
+  const we=addDays(ws,6);const c={};
+  db.bookings.forEach(b=>{if(b.date>=ws&&b.date<=we)c[b.status]=(c[b.status]||0)+1});
+  const all=Object.keys(c).reduce((a,k)=>a+c[k],0);
+  return '<div class="fchips"><button class="fchip'+(ui.wf===''?' on':'')+'" data-a="wf" data-k="">Alle <b>'+all+'</b></button>'+
+   ['booked','confirmed','done','cancelled','open'].map(k=>'<button class="fchip st-'+k+(ui.wf===k?' on':'')+'" data-a="wf" data-k="'+k+'">'+STATUS[k]+' <b>'+(c[k]||0)+'</b></button>').join('')+'</div>';
+}
+function deltaHtml(a,b,fmt){
+  const d=a-b;if(Math.abs(d)<.005)return '<span class="d">gleich</span>';
+  return '<span class="d '+(d>0?'up':'down')+'">'+(d>0?'▲ +':'▼ −')+fmt(Math.abs(d))+'</span>';
+}
+function weekCompare(){
+  const ws=weekStart(today());
+  const cur=stats(ws,addDays(ws,6)),prev=stats(addDays(ws,-7),addDays(ws,-1));
+  const rows=[['👦','Kinder trainiert',cur.kids,prev.kids,n=>String(n),n=>String(n)],['⚽','Trainings',cur.trainings,prev.trainings,n=>String(n),n=>String(n)],
+    ['💰','Einnahmen',cur.income,prev.income,money,money],['⏱','Trainingszeit',cur.minutes,prev.minutes,fmtH,fmtH]];
+  return '<div class="card"><h2>Wochenentwicklung</h2><div class="cmp"><div class="h"></div><div class="h">Diese Woche</div><div class="h">Letzte Woche</div>'+
+   rows.map(r=>'<div>'+r[0]+' '+r[1]+'</div><div><span class="v">'+r[4](r[2])+'</span>'+deltaHtml(r[2],r[3],r[4])+'</div><div><span class="v" style="color:var(--muted)">'+r[5](r[3])+'</span></div>').join('')+'</div></div>';
+}
+function monthCard(anchor){
+  const d=parse(anchor),s=stats(monthStart(anchor),monthEnd(anchor));
+  const T=(l,n)=>'<div class="tile"><div class="l">'+l+'</div><div class="n">'+n+'</div></div>';
+  return '<div class="card"><h2>Monatsstatistik <small>'+MON[d.getMonth()]+' '+d.getFullYear()+'</small></h2><div class="mgrid four">'+
+   T('Trainings',s.trainings)+T('Kinder',s.kids)+T('Trainingsstunden',fmtH(s.minutes))+T('Einnahmen',money(s.income))+
+   T('Offene Zahlungen',money(s.open))+T('Ø pro Training',money(s.avgT))+T('Ø pro Kind',money(s.avgK))+'</div></div>';
+}
+
+/* ================= Seiten ================= */
+function pDashboard(){
+  const t=today(),ws=weekStart(t),we=addDays(ws,6);
+  const cur=stats(ws,we),prev=stats(addDays(ws,-7),addDays(ws,-1));
+  const mo=stats(monthStart(t),monthEnd(t));
+  const h=new Date().getHours();
+  const greet=h<11?'Guten Morgen':h<17?'Guten Tag':'Guten Abend';
+  const md=parse(t);
+  const open=openList(),openSum=open.reduce((a,b)=>a+dueOf(b),0);
+  const nx=nextBooking();
+  const vs=(a,b,f)=>{const d=a-b;return Math.abs(d)<.005?'wie Vorwoche':(d>0?'▲ +':'▼ −')+f(Math.abs(d))+' zur Vorwoche'};
+  const id=n=>String(n);
+  const hero='<section class="hero"><svg class="lines" viewBox="0 0 340 260" aria-hidden="true"><circle cx="220" cy="120" r="78"/><path d="M220 0v260"/><rect x="160" y="150" width="200" height="140"/></svg>'+
+   '<p class="hello">'+greet+', '+esc(db.trainer.name)+' ⚽</p><p class="kw">Kalenderwoche '+isoWeek(t)+' · '+fmtShort(ws)+'–'+fmtShort(we)+md.getFullYear()+'</p>'+
+   '<div class="board">'+
+   '<div class="cell"><div class="l">Kinder diese Woche</div><div class="n">'+cur.kids+'</div><div class="s">'+vs(cur.kids,prev.kids,id)+'</div></div>'+
+   '<div class="cell"><div class="l">Trainings diese Woche</div><div class="n">'+cur.trainings+'</div><div class="s">'+vs(cur.trainings,prev.trainings,id)+'</div></div>'+
+   '<div class="cell"><div class="l">Einnahmen diese Woche</div><div class="n">'+money(cur.income)+'</div><div class="s">'+vs(cur.income,prev.income,money)+'</div></div>'+
+   '<div class="cell"><div class="l">Einnahmen diesen Monat</div><div class="n">'+money(mo.income)+'</div><div class="s">'+mo.trainings+' Trainings im '+MON[md.getMonth()]+'</div></div>'+
+   '</div><div class="cta"><button class="btn amber big" data-a="newBooking">'+ico('plus',22)+'Neue Buchung</button></div></section>';
+  const openCard=open.length?
+   '<button class="link-card strip" data-a="go" data-p="earnings"><span class="tag">💶</span><span><span class="lab">Offene Zahlungen</span><br><span class="big">'+money(openSum)+'</span> <span class="lab">aus '+open.length+' Training'+(open.length>1?'s':'')+'</span></span></button>':
+   '<div class="link-card strip"><span class="tag">✅</span><span><span class="lab">Offene Zahlungen</span><br><span class="big">0 €</span> <span class="lab">Alles bezahlt</span></span></div>';
+  const nextCard=nx?
+   '<button class="link-card strip" data-a="open" data-id="'+nx.id+'"><span class="tag">⏰</span><span><span class="lab">Als Nächstes</span><br><span class="big">'+(nx.date===t?'Heute':fmtDate(nx.date))+' '+nx.start+'</span> <span class="lab">'+esc(namesShort(nx))+'</span></span></button>':
+   '<div class="link-card strip"><span class="tag">📅</span><span><span class="lab">Als Nächstes</span><br><span class="lab">Kein kommendes Training gebucht.</span></span></div>';
+  return '<div class="stack">'+hero+'<div class="grid two-eq">'+nextCard+openCard+'</div>'+
+   '<div class="grid two"><div class="card"><h2>Wochenübersicht <small>Mo–So</small></h2>'+weekChips(ws)+weekList(ws,ui.wf)+'</div>'+
+   '<div class="stack">'+weekCompare()+monthCard(t)+'</div></div></div>';
+}
+
+/* ---- Kalender ---- */
+function calLabel(){
+  const d=ui.calDate,p=parse(d);
+  if(ui.calView==='day')return fmtDate(d,true);
+  if(ui.calView==='week')return rangeOf('week',d)[2];
+  return MON[p.getMonth()]+' '+p.getFullYear();
+}
+function dayView(d){
+  const items=db.bookings.filter(b=>b.date===d).sort(byDT);
+  let h0=7,h1=21;
+  items.forEach(b=>{h0=Math.min(h0,Math.floor(toMin(b.start)/60));h1=Math.max(h1,Math.ceil(toMin(b.end)/60))});
+  const PX=64,colEnd=[],placed=[];
+  items.forEach(b=>{let i=colEnd.findIndex(e=>e<=toMin(b.start));if(i<0){i=colEnd.length;colEnd.push(0)}colEnd[i]=toMin(b.end);placed.push({b:b,c:i})});
+  const nc=Math.max(1,colEnd.length);
+  let hrs='';for(let h=h0;h<h1;h++)hrs+='<div class="hr" style="top:'+(h-h0)*PX+'px"><span>'+pad(h)+':00</span></div>';
+  const blocks=placed.map(p=>{
+    const b=p.b,top=(toMin(b.start)-h0*60)*PX/60,ht=Math.max(38,dur(b)*PX/60-3);
+    const t=typeOf(b.typeId);
+    return '<button class="blk st-'+b.status+'" data-a="open" data-id="'+b.id+'" style="top:'+top+'px;height:'+ht+'px;left:calc(52px + (100% - 56px) * '+p.c+' / '+nc+');width:calc((100% - 56px) / '+nc+' - 4px)"><b>'+esc(namesShort(b))+'</b><small>'+b.start+'–'+b.end+' · '+esc(t?t.name:'')+'</small></button>';
+  }).join('');
+  let now='';
+  if(d===today()){const m=new Date().getHours()*60+new Date().getMinutes();if(m>=h0*60&&m<=h1*60)now='<div class="now" style="top:'+(m-h0*60)*PX/60+'px"></div>'}
+  return '<div class="card"><div class="toolbar" style="justify-content:space-between;margin:0 0 10px"><span class="muted">'+items.filter(counted).length+' Training(s) an diesem Tag</span><button class="btn ghost sm" data-a="newBooking" data-date="'+d+'">'+ico('plus',16)+'Training hinzufügen</button></div>'+
+   '<div class="tl" style="height:'+(h1-h0)*PX+'px">'+hrs+blocks+now+'</div>'+(items.length?'':'<p class="none" style="margin-top:12px">Noch keine Einträge. Tippe auf „Training hinzufügen“.</p>')+'</div>';
+}
+function monthView(d){
+  const first=monthStart(d),last=addDays(addMonths(d,1),-1);
+  const gs=weekStart(first),ge=addDays(weekStart(last),6);
+  const mm=parse(first).getMonth(),t=today();
+  let cells=WDS.map(w=>'<div class="wd">'+w+'</div>').join('');
+  for(let s=gs;s<=ge;s=addDays(s,1)){
+    const items=db.bookings.filter(b=>b.date===s&&b.status!=='cancelled').sort(byDT);
+    const n=items.filter(counted).length;
+    cells+='<button class="mc'+(parse(s).getMonth()!==mm?' oth':'')+(s===t?' tod':'')+'" data-a="calDay" data-d="'+s+'" aria-label="'+esc(fmtDate(s,true))+'"><span class="dn">'+parse(s).getDate()+'</span><span class="dots">'+items.slice(0,4).map(b=>'<i class="st-'+b.status+'"></i>').join('')+'</span>'+(n?'<span class="cnt">'+n+'</span>':'')+'</button>';
+  }
+  return '<div class="card"><div class="mon">'+cells+'</div></div>';
+}
+function pCalendar(){
+  const v=ui.calView;
+  const body=v==='day'?dayView(ui.calDate):v==='week'?'<div class="weekgrid">'+weekList(weekStart(ui.calDate),'')+'</div>':monthView(ui.calDate);
+  return head('Kalender','',newBtn)+
+   '<div class="toolbar"><div class="seg">'+[['day','Tag'],['week','Woche'],['month','Monat']].map(x=>'<button class="'+(v===x[0]?'on':'')+'" data-a="calView" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
+   '<div class="pnav"><button class="iconbtn" data-a="calNav" data-d="-1" aria-label="Zurück">'+ico('chevL')+'</button><b>'+esc(calLabel())+'</b><button class="iconbtn" data-a="calNav" data-d="1" aria-label="Weiter">'+ico('chevR')+'</button></div>'+
+   '<button class="btn ghost sm" data-a="calToday">Heute</button></div>'+body;
+}
+
+/* ---- Filter/Periode ---- */
+const S=w=>w==='bk'?ui.bk:ui.earn;
+function periodCtl(w){
+  const st=S(w);
+  const per=[['week','Woche'],['month','Monat'],['year','Jahr']];if(w==='bk')per.push(['all','Alle']);
+  const label=rangeOf(st.period,st.anchor)[2];
+  return '<div class="toolbar"><div class="seg">'+per.map(x=>'<button class="'+(st.period===x[0]?'on':'')+'" data-a="period" data-w="'+w+'" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
+   (st.period!=='all'?'<div class="pnav"><button class="iconbtn" data-a="pnav" data-w="'+w+'" data-d="-1" aria-label="Zurück">'+ico('chevL')+'</button><b>'+esc(label)+'</b><button class="iconbtn" data-a="pnav" data-w="'+w+'" data-d="1" aria-label="Weiter">'+ico('chevR')+'</button></div><button class="btn ghost sm" data-a="pnow" data-w="'+w+'">Aktuell</button>':'<div class="pnav"><b>Alle Zeiträume</b></div>')+'</div>';
+}
+function sel(w,k,label,options,val){
+  return '<select data-ch="flt" data-w="'+w+'" data-k="'+k+'" aria-label="'+esc(label)+'"><option value="">'+esc(label)+'</option>'+options.map(o=>'<option value="'+esc(o[0])+'"'+(o[0]===val?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>';
+}
+const childOpts=()=>db.children.slice().sort((a,b)=>a.firstName.localeCompare(b.firstName)).map(c=>[c.id,cname(c)]);
+const typeOpts=()=>db.types.map(t=>[t.id,t.name]);
+
+/* ---- Buchungen ---- */
+function bookCard(b){
+  const t=typeOf(b.typeId),k=kidsOf(b);
+  const nm=b.status==='open'&&!k.length?'Freier Termin':k.map(c=>esc(cname(c))+'<small>'+c.age+' Jahre</small>').join('<br>');
+  const par=k.slice(0,3).map(c=>esc(c.parentName)+(c.phone?' · '+esc(c.phone):'')).join(' | ');
+  return '<button class="bk st-'+b.status+'" data-a="open" data-id="'+b.id+'"><div class="top"><div class="nm">'+nm+'</div>'+chip(b.status)+'</div>'+
+   '<div class="when">'+fmtDate(b.date,true)+'<br><span>'+b.start+' – '+b.end+' Uhr · '+dur(b)+' Min.</span></div>'+
+   '<div class="row"><span>⚽ '+esc(t?t.name:'Training')+(b.childIds.length>1?' · '+b.childIds.length+' Kinder':'')+'</span><b>'+money(b.status==='open'?b.price:total(b))+'</b></div>'+
+   '<div class="chips" style="margin-top:8px">'+payChip(b)+'</div>'+(par?'<div class="par">Eltern: '+par+'</div>':'')+(b.notes?'<div class="note">'+esc(b.notes)+'</div>':'')+'</button>';
+}
+function pBookings(){
+  const f=ui.bk,r=rangeOf(f.period,f.anchor);
+  const list=db.bookings.filter(b=>{
+    if(b.date<r[0]||b.date>r[1])return false;
+    if(f.child&&b.childIds.indexOf(f.child)<0)return false;
+    if(f.type&&b.typeId!==f.type)return false;
+    if(f.status&&b.status!==f.status)return false;
+    if(f.pay&&(b.status==='open'||b.payStatus!==f.pay))return false;
+    return true;
+  }).sort(byDT);
+  const c=list.filter(counted);
+  const rec=c.reduce((a,b)=>a+paidOf(b.id),0);
+  return head('Buchungen',db.bookings.length+' insgesamt',newBtn)+periodCtl('bk')+
+   '<div class="filters">'+sel('bk','child','Alle Kinder',childOpts(),f.child)+sel('bk','type','Alle Trainingsarten',typeOpts(),f.type)+
+   sel('bk','status','Alle Trainingsstatus',Object.keys(STATUS).map(k=>[k,STATUS[k]]),f.status)+
+   sel('bk','pay','Alle Zahlungsstatus',Object.keys(PAY).map(k=>[k,PAY[k]]),f.pay)+'</div>'+
+   '<p class="sumline">'+list.length+' Eintrag'+(list.length===1?'':'e')+' · '+c.length+' Training'+(c.length===1?'':'s')+' · '+money(rec)+' erhalten</p>'+
+   (list.length?'<div class="kidgrid">'+list.map(bookCard).join('')+'</div>':'<div class="empty"><b>Keine Buchungen gefunden</b>Passe Zeitraum oder Filter an oder lege eine neue Buchung an.</div>');
+}
+
+/* ---- Kinder ---- */
+function kidList(){
+  const q=ui.q.trim().toLowerCase();
+  const list=db.children.filter(c=>!q||(cname(c)+' '+c.parentName).toLowerCase().indexOf(q)>=0).sort((a,b)=>a.lastName.localeCompare(b.lastName)||a.firstName.localeCompare(b.firstName));
+  if(!list.length)return '<div class="empty"><b>'+(db.children.length?'Kein Treffer':'Noch keine Kinder')+'</b>'+(db.children.length?'Versuche einen anderen Suchbegriff.':'Lege dein erstes Kind an oder erstelle direkt eine Buchung.')+'</div>';
+  return '<div class="kidgrid">'+list.map(c=>{
+    const s=childStats(c.id);
+    return '<button class="kid" data-a="openChild" data-id="'+c.id+'"><span class="av">'+esc(c.firstName.charAt(0)+c.lastName.charAt(0))+'</span><span><span class="n">'+esc(cname(c))+'<small>'+c.age+' Jahre</small></span><br><span class="p">'+esc(c.parentName)+'</span>'+
+     '<span class="st"><span><b>'+s.n+'</b>Trainings</span><span><b>'+money(s.spent)+'</b>Ausgaben</span><span><b>'+(s.last?fmtShort(s.last):'–')+'</b>Zuletzt</span></span></span></button>';
+  }).join('')+'</div>';
+}
+function pKids(){
+  return head('Kinder',db.children.length+' gespeichert','<button class="btn brand" data-a="newChild">'+ico('plus',20)+'Neues Kind</button>')+
+   '<div class="search"><input type="search" id="q" placeholder="Kind oder Elternteil suchen" value="'+esc(ui.q)+'" aria-label="Suchen"></div><div id="kidlist">'+kidList()+'</div>';
+}
+
+/* ---- Einnahmen ---- */
+function vbars(items){
+  const max=Math.max(1,...items.map(i=>i.v));
+  return '<div class="vbars">'+items.map(i=>'<div class="vb'+(i.cur?' cur':'')+'" title="'+esc(i.l+': '+money(i.v))+'"><span class="vv">'+(i.v?compact(i.v):'')+'</span><div class="bw"><div class="bar" style="height:'+Math.max(2,i.v/max*100)+'%"></div></div><span class="vl">'+esc(i.l)+'</span></div>').join('')+'</div>';
+}
+function hbars(items){
+  if(!items.length)return '<p class="none">Keine Daten im Zeitraum.</p>';
+  const max=Math.max(1,...items.map(i=>i.v));
+  return '<div class="hbars">'+items.map(i=>'<div class="hb"><span class="hl">'+esc(i.l)+'</span><span class="hbar"><i style="width:'+Math.max(2,i.v/max*100)+'%"></i></span><span class="hv">'+money(i.v)+'</span></div>').join('')+'</div>';
+}
+function pEarnings(){
+  const t=today(),e=ui.earn,r=rangeOf(e.period,e.anchor),o={childId:e.child,typeId:e.type};
+  const w=stats(weekStart(t),addDays(weekStart(t),6)),m=stats(monthStart(t),monthEnd(t)),y=stats(t.slice(0,4)+'-01-01',t.slice(0,4)+'-12-31');
+  const sel_=stats(r[0],r[1],o);
+  const T=(l,n)=>'<div class="tile"><div class="l">'+l+'</div><div class="n">'+n+'</div></div>';
+  const ws=weekStart(e.anchor),weeks=[];
+  for(let i=7;i>=0;i--){const s=addDays(ws,-7*i);weeks.push({l:'KW'+isoWeek(s),v:stats(s,addDays(s,6),o).income,cur:i===0})}
+  const yr=e.anchor.slice(0,4),months=[];
+  for(let i=0;i<12;i++){const k=yr+'-'+pad(i+1);months.push({l:MON[i].slice(0,3),v:stats(k+'-01',k+'-31',o).income,cur:i===parse(e.anchor).getMonth()})}
+  const byType=db.types.map(tp=>{const s=stats(r[0],r[1],{childId:e.child,typeId:tp.id});return {l:tp.name+' ('+s.trainings+'×)',v:s.income,n:s.trainings}}).filter(x=>x.n>0).sort((a,b)=>b.v-a.v);
+  const byKid=db.children.map(c=>{const s=stats(r[0],r[1],{childId:c.id,typeId:e.type});return {l:cname(c)+' ('+s.trainings+'×)',v:s.income,n:s.trainings}}).filter(x=>x.n>0&&(!e.child||true)).sort((a,b)=>b.v-a.v).slice(0,8);
+  const open=openList(),openSum=open.reduce((a,b)=>a+dueOf(b),0);
+  const openHtml=open.length?open.map(b=>{const t2=typeOf(b.typeId);return '<div class="openrow"><div><div class="who">'+esc(namesShort(b))+'</div><small>'+fmtDate(b.date,true)+' · '+esc(t2?t2.name:'')+(b.payStatus==='partial'?' · teilweise bezahlt':'')+'</small></div><div class="a">'+money(dueOf(b))+'</div><div><button class="btn ghost sm" data-a="openBooking" data-id="'+b.id+'">Details</button></div><div style="text-align:right"><button class="btn brand sm" data-a="markPaid" data-id="'+b.id+'">Als bezahlt markieren</button></div></div>'}).join(''):'<p class="none">Keine offenen Zahlungen. 🎉</p>';
+  return head('Einnahmen','Nur bezahlte Trainings zählen als erhaltenes Geld')+
+   '<div class="stack"><div class="kpis"><div class="kpi main"><div class="l">Diese Woche</div><div class="n">'+money(w.income)+'</div></div><div class="kpi"><div class="l">Dieser Monat</div><div class="n">'+money(m.income)+'</div></div><div class="kpi"><div class="l">Dieses Jahr</div><div class="n">'+money(y.income)+'</div></div></div>'+
+   '<div>'+periodCtl('earn')+'<div class="filters" style="grid-template-columns:1fr 1fr">'+sel('earn','child','Alle Kinder',childOpts(),e.child)+sel('earn','type','Alle Trainingsarten',typeOpts(),e.type)+'</div></div>'+
+   '<div class="card"><h2>Auswertung <small>'+esc(r[2])+'</small></h2><div class="mgrid four">'+T('Einnahmen',money(sel_.income))+T('Bezahlte Trainings',sel_.paidCount+' von '+sel_.trainings)+T('Offene Zahlungen',money(sel_.open))+T('Kinder',sel_.kids)+'</div></div>'+
+   '<div class="grid two-eq"><div class="card"><h2>Einnahmen pro Woche</h2>'+vbars(weeks)+'</div><div class="card"><h2>Einnahmen pro Monat <small>'+yr+'</small></h2>'+vbars(months)+'</div></div>'+
+   '<div class="grid two-eq"><div class="card"><h2>Pro Trainingsart</h2>'+hbars(byType)+'</div><div class="card"><h2>Pro Kind</h2>'+hbars(byKid)+'</div></div>'+
+   '<div class="grid two-eq">'+weekCompare()+monthCard(e.anchor)+'</div>'+
+   '<div class="card"><h2>Offene Zahlungen <small>'+money(openSum)+' aus '+open.length+' Training'+(open.length===1?'':'s')+'</small></h2>'+openHtml+'</div></div>';
+}
+
+/* ---- Einstellungen ---- */
+function pSettings(){
+  return head('Einstellungen','')+
+   '<div class="set two-eq grid"><div class="stack"><div class="card"><h2>Trainer</h2><div class="fld"><label for="trn">Dein Name (erscheint in der Begrüßung)</label><input type="text" id="trn" data-s="trainer" value="'+esc(db.trainer.name)+'"></div></div>'+
+   '<div class="card"><h2>Darstellung</h2><div class="segfull">'+[['auto','Automatisch'],['light','Hell'],['dark','Dunkel']].map(x=>'<button class="'+(theme===x[0]?'on':'')+'" data-a="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'+
+   '<div class="card"><h2>Daten</h2><p class="muted" style="margin-bottom:12px">Alle Daten werden lokal in diesem Browser gespeichert.</p><div class="btnrow" style="margin-top:0"><button class="btn ghost" data-a="resetDemo">Demodaten neu laden</button><button class="btn soft-danger" data-a="clearAll">Alles leeren</button></div></div></div>'+
+   '<div class="card"><h2>Trainingsarten</h2><p class="muted" style="margin-bottom:12px">Standardpreis pro Kind. Er wird bei einer Buchung vorgeschlagen und lässt sich dort ändern.</p>'+
+   db.types.map(t=>'<div class="trow"><input type="text" data-tf="name" data-id="'+t.id+'" value="'+esc(t.name)+'" aria-label="Name"><input type="number" inputmode="decimal" min="0" step="0.5" data-tf="price" data-id="'+t.id+'" value="'+esc(t.price)+'" aria-label="Preis in Euro"><button class="iconbtn" data-a="delType" data-id="'+t.id+'" aria-label="Trainingsart löschen">'+ico('trash',18)+'</button></div>').join('')+
+   '<h3 style="margin:16px 0 8px;font-size:18px">Neue Trainingsart</h3><div class="trow"><input type="text" id="ntName" placeholder="z. B. Athletiktraining"><input type="number" inputmode="decimal" min="0" step="0.5" id="ntPrice" placeholder="Preis"><button class="iconbtn" data-a="addType" aria-label="Hinzufügen">'+ico('plus',18)+'</button></div></div></div>';
+}
+const pages={dashboard:pDashboard,calendar:pCalendar,bookings:pBookings,kids:pKids,earnings:pEarnings,settings:pSettings};
+
+/* ================= Navigation & Render ================= */
+const NAV=[['dashboard','Dashboard','home'],['calendar','Kalender','cal'],['bookings','Buchungen','list'],['kids','Kinder','users'],['earnings','Einnahmen','euro']];
+function renderNav(){
+  $('#tabbar').innerHTML=NAV.map(n=>'<button class="'+(ui.page===n[0]?'on':'')+'" data-a="go" data-p="'+n[0]+'" aria-label="'+n[1]+'"'+(ui.page===n[0]?' aria-current="page"':'')+'>'+ico(n[2],24)+n[1]+'</button>').join('');
+  $('#side').innerHTML='<div class="logo">⚽ Trainer</div><div class="who">'+esc(db.trainer.name)+'</div><button class="btn amber" data-a="newBooking" style="margin-bottom:14px">'+ico('plus',20)+'Neue Buchung</button>'+
+   NAV.map(n=>'<button class="nav'+(ui.page===n[0]?' on':'')+'" data-a="go" data-p="'+n[0]+'">'+ico(n[2],21)+n[1]+'</button>').join('')+'<span class="sp"></span><button class="nav'+(ui.page==='settings'?' on':'')+'" data-a="go" data-p="settings">'+ico('gear',21)+'Einstellungen</button>';
+}
+function render(){
+  $('#main').innerHTML=pages[ui.page]();
+  renderNav();
+}
+function commit(){save();paidCache=null;render();renderModal()}
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* ================= Modals ================= */
+const top=()=>modals[modals.length-1];
+function pushModal(m){modals.push(m);renderModal()}
+function closeModal(){const m=modals.pop();if(m&&m.isForm)fs=null;renderModal()}
+function renderModal(){
+  const root=$('#modal-root'),m=top();
+  if(!m){root.innerHTML='';document.body.classList.remove('lock');return}
+  const html=m.render(m);
+  if(html===null){modals.pop();return renderModal()}
+  const old=$('.sheet',root),st=old&&m.shown?old.scrollTop:0;
+  root.innerHTML='<div class="ov'+(m.shown?'':' in')+'"><div class="sheet" role="dialog" aria-modal="true">'+html+'</div></div>';
+  const ns=$('.sheet',root);if(m.shown&&ns)ns.scrollTop=st;
+  m.shown=true;document.body.classList.add('lock');
+}
+const closeX='<button class="iconbtn" data-a="closeModal" aria-label="Schließen">'+ico('x')+'</button>';
+function askConfirm(title,text,okLabel,onOk,danger){
+  pushModal({onOk:onOk,render:()=>'<div class="sh-head"><h2>'+esc(title)+'</h2></div><p class="conf">'+esc(text)+'</p><div class="btnrow"><button class="btn ghost" data-a="closeModal">Abbrechen</button><button class="btn '+(danger===false?'brand':'danger')+'" data-a="confirmOk">'+esc(okLabel)+'</button></div>'});
+}
+
+/* ---- Buchungsdetail ---- */
+function openDetail(id){const m={partial:false,render:()=>detailHtml(id,m)};pushModal(m)}
+function detailHtml(id,m){
+  const b=getB(id);if(!b)return null;
+  const t=typeOf(b.typeId),k=kidsOf(b),isSlot=b.status==='open',c=counted(b);
+  let h='<div class="sh-head"><div><h2>'+esc(namesFull(b))+'</h2><p>'+fmtDate(b.date,true)+'</p></div>'+closeX+'</div>';
+  h+='<div class="chips">'+chip(b.status)+payChip(b)+'</div>';
+  h+='<dl class="kv"><div><dt>Uhrzeit</dt><dd>'+b.start+' – '+b.end+' Uhr</dd></div><div><dt>Dauer</dt><dd>'+dur(b)+' Min.</dd></div><div><dt>Trainingsart</dt><dd>⚽ '+esc(t?t.name:'–')+'</dd></div>'+
+   '<div><dt>Preis</dt><dd>'+(b.childIds.length>1?money(b.price)+' × '+b.childIds.length+' = '+money(total(b)):money(isSlot?b.price:total(b)))+'</dd></div>'+(c||b.payStatus==='refund'?'<div><dt>Bezahlt</dt><dd>'+money(paidOf(b.id))+' von '+money(total(b))+'</dd></div>':'')+'</dl>';
+  if(k.length){h+='<div class="sec"><h3>Kind & Eltern</h3>'+k.map(x=>'<div class="person"><div><b>'+esc(cname(x))+'</b>, '+x.age+' J.<small>'+esc(x.parentName)+(x.phone?' · '+esc(x.phone):'')+'</small></div><div class="ct">'+(x.phone?'<a href="tel:'+esc(x.phone.replace(/\s/g,''))+'" aria-label="Anrufen">'+ico('phone',18)+'</a>':'')+(x.email?'<a href="mailto:'+esc(x.email)+'" aria-label="E-Mail">'+ico('mail',18)+'</a>':'')+'</div></div>').join('')+'</div>'}
+  if(b.notes)h+='<div class="sec"><h3>Notizen</h3><p>'+esc(b.notes)+'</p></div>';
+  if(c){
+    h+='<div class="sec"><h3>Status</h3><div class="segfull">'+['booked','confirmed','done'].map(s=>'<button class="'+(b.status===s?'on':'')+'" data-a="setStatus" data-id="'+id+'" data-s="'+s+'">'+STATUS[s]+'</button>').join('')+'</div></div>';
+    h+='<div class="sec"><h3>Zahlung</h3><div class="segfull pay">'+['paid','open','partial','refund'].map(s=>'<button class="p-'+s+(b.payStatus===s?' on':'')+'" data-a="setPay" data-id="'+id+'" data-s="'+s+'">'+({paid:'Bezahlt',open:'Offen',partial:'Teilweise',refund:'Erstattet'})[s]+'</button>').join('')+'</div>';
+    if(m.partial||b.payStatus==='partial')h+='<div class="g2" style="margin-top:10px;align-items:end"><div class="fld"><label for="partialAmt">Bereits bezahlt (€)</label><input type="number" id="partialAmt" inputmode="decimal" min="0" step="0.5" value="'+esc(b.payStatus==='partial'?paidOf(b.id):'')+'"></div><button class="btn brand" data-a="applyPartial" data-id="'+id+'">Übernehmen</button></div>';
+    h+='</div>';
+  }
+  h+='<div class="btnrow">';
+  if(isSlot)h+='<button class="btn brand" data-a="assign" data-id="'+id+'">Kind zuweisen</button>';
+  if(b.status==='cancelled')h+='<button class="btn brand" data-a="uncancel" data-id="'+id+'">Wieder aktivieren</button>';
+  h+='<button class="btn ghost" data-a="editBooking" data-id="'+id+'">Bearbeiten</button><button class="btn ghost" data-a="moveBooking" data-id="'+id+'">Verschieben</button>';
+  h+='</div><div class="btnrow" style="margin-top:10px">';
+  if(c)h+='<button class="btn soft-danger" data-a="cancelBooking" data-id="'+id+'">Absagen</button>';
+  h+='<button class="btn soft-danger" data-a="deleteBooking" data-id="'+id+'">'+ico('trash',18)+'Löschen</button></div>';
+  return h;
+}
+
+/* ---- Formular ---- */
+function makeFs(init){
+  const t=typeOf(init.typeId)||db.types[0];
+  return {id:init.id||null,childIds:(init.childIds||[]).slice(),date:init.date||today(),start:init.start||'16:00',end:init.end||'17:00',
+    typeId:t?t.id:'',price:String(init.price!=null?init.price:(t?t.price:0)),status:init.status&&init.status!=='open'?init.status:'booked',
+    payStatus:init.payStatus||'open',partial:init.partial||'',notes:init.notes||'',isSlot:!!init.isSlot,canSlot:!init.id||!!init.wasSlot,wasSlot:!!init.wasSlot,assign:!!init.assign,showNew:false,nc:{},err:'',warn:''};
+}
+function openBookingForm(init){fs=makeFs(init||{});pushModal({isForm:true,render:formHtml})}
+const optHtml=(list,val)=>list.map(o=>'<option value="'+esc(o[0])+'"'+(String(o[0])===String(val)?' selected':'')+'>'+esc(o[1])+'</option>').join('');
+function formHtml(){
+  const f=fs;if(!f)return null;
+  const kids=f.childIds.map(child).filter(Boolean);
+  const avail=db.children.filter(c=>f.childIds.indexOf(c.id)<0).sort((a,b)=>a.firstName.localeCompare(b.firstName));
+  const tot=num(f.price)*Math.max(1,f.childIds.length);
+  let h='<div class="sh-head"><h2>'+(f.assign?'Kind zuweisen':f.id?'Buchung bearbeiten':'Neue Buchung')+'</h2>'+closeX+'</div><div class="form">';
+  if(f.err)h+='<div class="alert" role="alert">'+esc(f.err)+'</div>';
+  if(f.canSlot)h+='<label class="sw"><input type="checkbox" data-f="isSlot" data-re="1"'+(f.isSlot?' checked':'')+'> Freier Termin (noch kein Kind)</label>';
+  if(!f.isSlot){
+    h+='<h3>Kind</h3>';
+    if(kids.length)h+='<div class="picked">'+kids.map(c=>'<span class="pk">'+esc(cname(c))+'<button data-a="rmChild" data-id="'+c.id+'" aria-label="Entfernen">'+ico('x',14)+'</button></span>').join('')+'</div>';
+    if(avail.length)h+='<div class="fld"><label for="pick">'+(kids.length?'Weiteres Kind hinzufügen':'Kind aus der Liste wählen')+'</label><select id="pick" data-ch="pickChild"><option value="">Bestehendes Kind wählen …</option>'+avail.map(c=>'<option value="'+c.id+'">'+esc(cname(c))+' ('+c.age+')</option>').join('')+'</select></div>';
+    kids.forEach(c=>{h+='<p class="muted" style="font-size:13.5px">Eltern von '+esc(c.firstName)+': '+esc(c.parentName)+(c.phone?' · '+esc(c.phone):'')+'</p>'});
+    h+='<button class="btn ghost sm" data-a="toggleNew" style="justify-self:start">'+(f.showNew?'Neues Kind ausblenden':'+ Neues Kind anlegen')+'</button>';
+    if(f.showNew){
+      h+='<div class="newkid"><div class="g3"><div class="fld"><label>Vorname</label><input type="text" data-f="nc.firstName" value="'+esc(f.nc.firstName)+'"></div><div class="fld"><label>Nachname</label><input type="text" data-f="nc.lastName" value="'+esc(f.nc.lastName)+'"></div><div class="fld"><label>Alter</label><input type="number" inputmode="numeric" min="3" max="25" data-f="nc.age" value="'+esc(f.nc.age)+'"></div></div>'+
+       '<div class="fld"><label>Name Elternteil</label><input type="text" data-f="nc.parentName" value="'+esc(f.nc.parentName)+'"></div><div class="g2"><div class="fld"><label>Telefonnummer</label><input type="tel" data-f="nc.phone" value="'+esc(f.nc.phone)+'"></div><div class="fld"><label>E-Mail</label><input type="email" data-f="nc.email" value="'+esc(f.nc.email)+'"></div></div>'+
+       '<button class="btn brand sm" data-a="addNewChild" style="justify-self:start">Kind hinzufügen</button></div>';
+    }
+  }else h+='<p class="muted">Dieser Termin ist frei und zählt nicht zu Trainings, Kindern und Einnahmen, bis du ein Kind zuweist.</p>';
+  h+='<h3>Training</h3><div class="g3"><div class="fld"><label>Datum</label><input type="date" data-f="date" value="'+esc(f.date)+'"></div><div class="fld"><label>Start</label><input type="time" data-ch="fStart" value="'+esc(f.start)+'"></div><div class="fld"><label>Ende</label><input type="time" data-f="end" value="'+esc(f.end)+'"></div></div>';
+  h+='<div class="g2"><div class="fld"><label>Trainingsart</label><select data-ch="fType">'+optHtml(db.types.map(t=>[t.id,t.name+' ('+money(t.price)+')']),f.typeId)+'</select></div><div class="fld"><label>Preis pro Kind (€)</label><input type="number" inputmode="decimal" min="0" step="0.5" data-f="price" value="'+esc(f.price)+'"></div></div>';
+  if(!f.isSlot)h+='<div class="total"><span>Gesamt'+(f.childIds.length>1?' ('+f.childIds.length+' Kinder)':'')+'</span><b id="ftotal">'+money(tot)+'</b></div>';
+  if(!f.isSlot){
+    h+='<h3>Status & Zahlung</h3><div class="g2"><div class="fld"><label>Trainingsstatus</label><select data-f="status" data-re="1">'+optHtml([['booked','Gebucht'],['confirmed','Bestätigt'],['done','Absolviert'],['cancelled','Abgesagt']],f.status)+'</select></div>'+
+     '<div class="fld"><label>Zahlungsstatus</label><select data-f="payStatus" data-re="1"'+(f.status==='cancelled'?' disabled':'')+'>'+optHtml(Object.keys(PAY).map(k=>[k,PAY[k]]),f.payStatus)+'</select></div></div>';
+    if(f.payStatus==='partial'&&f.status!=='cancelled')h+='<div class="fld"><label>Bereits bezahlt (€)</label><input type="number" inputmode="decimal" min="0" step="0.5" data-f="partial" value="'+esc(f.partial)+'"></div>';
+  }
+  h+='<div class="fld"><label>Notizen</label><textarea data-f="notes" placeholder="z. B. Schwerpunkt, Platz, Hinweise der Eltern">'+esc(f.notes)+'</textarea></div>';
+  if(f.warn)h+='<div class="alert warn">'+esc(f.warn)+'</div>';
+  h+='</div><div class="btnrow"><button class="btn ghost" data-a="closeModal">Abbrechen</button>'+(f.warn?'<button class="btn amber" data-a="saveBooking" data-force="1">Trotzdem speichern</button>':'<button class="btn brand" data-a="saveBooking">Speichern</button>')+'</div>';
+  return h;
+}
+function setPath(o,path,v){const p=path.split('.');let c=o;for(let i=0;i<p.length-1;i++){c[p[i]]=c[p[i]]||{};c=c[p[i]]}c[p[p.length-1]]=v}
+function createChildFromNc(nc){
+  const fn=(nc.firstName||'').trim(),ln=(nc.lastName||'').trim(),age=parseInt(nc.age,10);
+  if(!fn||!ln)return 'Bitte gib Vor- und Nachname des Kindes ein.';
+  if(!age||age<2||age>99)return 'Bitte gib ein gültiges Alter ein.';
+  const c={id:uid(),trainerId:db.trainer.id,firstName:fn,lastName:ln,age:age,parentName:(nc.parentName||'').trim(),phone:(nc.phone||'').trim(),email:(nc.email||'').trim(),notes:''};
+  db.children.push(c);return c;
+}
+
+/* ---- Kinder-Modals ---- */
+function openChildDetail(id){pushModal({render:()=>childHtml(id)})}
+function childHtml(id){
+  const c=child(id);if(!c)return null;
+  const s=childStats(id),t=today();
+  const list=db.bookings.filter(b=>b.childIds.indexOf(id)>=0).sort((a,b)=>byDT(b,a)).slice(0,8);
+  let h='<div class="sh-head"><div><h2>'+esc(cname(c))+'</h2><p>'+c.age+' Jahre</p></div>'+closeX+'</div>';
+  h+='<dl class="kv"><div><dt>Trainings</dt><dd>'+s.n+'</dd></div><div><dt>Gesamtausgaben</dt><dd>'+money(s.spent)+'</dd></div><div><dt>Letzte Einheit</dt><dd>'+(s.last?fmtDate(s.last,true):'–')+'</dd></div><div><dt>Nächste Einheit</dt><dd>'+(s.next?fmtDate(s.next,true):'–')+'</dd></div></dl>';
+  h+='<div class="sec"><h3>Elternkontakt</h3><div class="person"><div><b>'+esc(c.parentName||'–')+'</b><small>'+esc(c.phone||'Keine Telefonnummer')+'</small><small>'+esc(c.email||'Keine E-Mail')+'</small></div><div class="ct">'+(c.phone?'<a href="tel:'+esc(c.phone.replace(/\s/g,''))+'" aria-label="Anrufen">'+ico('phone',18)+'</a>':'')+(c.email?'<a href="mailto:'+esc(c.email)+'" aria-label="E-Mail">'+ico('mail',18)+'</a>':'')+'</div></div></div>';
+  if(c.notes)h+='<div class="sec"><h3>Notizen</h3><p>'+esc(c.notes)+'</p></div>';
+  h+='<div class="sec"><h3>Letzte Buchungen</h3>'+(list.length?list.map(ent).join(''):'<p class="none">Noch keine Buchungen.</p>')+'</div>';
+  h+='<div class="btnrow"><button class="btn brand" data-a="bookForChild" data-id="'+id+'">Training buchen</button><button class="btn ghost" data-a="editChild" data-id="'+id+'">Bearbeiten</button></div><div class="btnrow" style="margin-top:10px"><button class="btn soft-danger" data-a="deleteChild" data-id="'+id+'">'+ico('trash',18)+'Kind löschen</button></div>';
+  return h;
+}
+function openChildForm(c){
+  fs={id:c?c.id:null,firstName:c?c.firstName:'',lastName:c?c.lastName:'',age:c?String(c.age):'',parentName:c?c.parentName:'',phone:c?c.phone:'',email:c?c.email:'',notes:c?c.notes:'',err:''};
+  pushModal({isForm:true,render:childFormHtml});
+}
+function childFormHtml(){
+  const f=fs;if(!f)return null;
+  return '<div class="sh-head"><h2>'+(f.id?'Kind bearbeiten':'Neues Kind')+'</h2>'+closeX+'</div><div class="form">'+(f.err?'<div class="alert" role="alert">'+esc(f.err)+'</div>':'')+
+   '<div class="g2"><div class="fld"><label>Vorname</label><input type="text" data-f="firstName" value="'+esc(f.firstName)+'"></div><div class="fld"><label>Nachname</label><input type="text" data-f="lastName" value="'+esc(f.lastName)+'"></div></div>'+
+   '<div class="fld"><label>Alter</label><input type="number" inputmode="numeric" min="2" max="99" data-f="age" value="'+esc(f.age)+'"></div>'+
+   '<h3>Eltern</h3><div class="fld"><label>Name</label><input type="text" data-f="parentName" value="'+esc(f.parentName)+'"></div><div class="g2"><div class="fld"><label>Telefonnummer</label><input type="tel" data-f="phone" value="'+esc(f.phone)+'"></div><div class="fld"><label>E-Mail</label><input type="email" data-f="email" value="'+esc(f.email)+'"></div></div>'+
+   '<div class="fld"><label>Notizen</label><textarea data-f="notes">'+esc(f.notes)+'</textarea></div></div><div class="btnrow"><button class="btn ghost" data-a="closeModal">Abbrechen</button><button class="btn brand" data-a="saveChild">Speichern</button></div>';
+}
+function moveHtml(){
+  const f=fs;if(!f)return null;const b=getB(f.id);if(!b)return null;
+  return '<div class="sh-head"><div><h2>Termin verschieben</h2><p>'+esc(namesFull(b))+'</p></div>'+closeX+'</div><div class="form">'+(f.err?'<div class="alert" role="alert">'+esc(f.err)+'</div>':'')+
+   '<div class="g3"><div class="fld"><label>Datum</label><input type="date" data-f="date" value="'+esc(f.date)+'"></div><div class="fld"><label>Start</label><input type="time" data-ch="fStart" value="'+esc(f.start)+'"></div><div class="fld"><label>Ende</label><input type="time" data-f="end" value="'+esc(f.end)+'"></div></div>'+
+   (f.warn?'<div class="alert warn">'+esc(f.warn)+'</div>':'')+'</div><div class="btnrow"><button class="btn ghost" data-a="closeModal">Abbrechen</button><button class="btn brand" data-a="saveMove"'+(f.warn?' data-force="1"':'')+'>'+(f.warn?'Trotzdem verschieben':'Verschieben')+'</button></div>';
+}
+function findConflict(id,date,start,end){
+  return db.bookings.find(b=>b.id!==id&&counted(b)&&b.date===date&&toMin(b.start)<toMin(end)&&toMin(start)<toMin(b.end));
+}
+
+/* ================= Aktionen ================= */
+const A={};
+A.go=el=>{ui.page=el.dataset.p;render();window.scrollTo(0,0)};
+A.closeModal=()=>closeModal();
+A.confirmOk=()=>{const m=top(),f=m&&m.onOk;closeModal();if(f)f()};
+A.open=el=>openDetail(el.dataset.id);
+A.openBooking=el=>openDetail(el.dataset.id);
+A.newBooking=el=>{openBookingForm({date:el&&el.dataset&&el.dataset.date||(ui.page==='calendar'?ui.calDate:today())})};
+A.editBooking=el=>{const b=getB(el.dataset.id);if(!b)return;
+  openBookingForm({id:b.id,childIds:b.childIds,date:b.date,start:b.start,end:b.end,typeId:b.typeId,price:b.price,status:b.status,payStatus:b.payStatus,partial:b.payStatus==='partial'?paidOf(b.id):'',notes:b.notes,isSlot:b.status==='open',wasSlot:b.status==='open'})};
+A.assign=el=>{const b=getB(el.dataset.id);if(!b)return;
+  openBookingForm({id:b.id,wasSlot:true,assign:true,childIds:[],date:b.date,start:b.start,end:b.end,typeId:b.typeId,price:b.price,status:'booked',payStatus:'open',notes:b.notes,isSlot:false});fs.canSlot=true;renderModal()};
+A.rmChild=el=>{fs.childIds=fs.childIds.filter(i=>i!==el.dataset.id);renderModal()};
+A.toggleNew=()=>{fs.showNew=!fs.showNew;renderModal()};
+A.addNewChild=()=>{const r=createChildFromNc(fs.nc);if(typeof r==='string'){fs.err=r;renderModal();return}fs.childIds.push(r.id);fs.nc={};fs.showNew=false;fs.err='';save();paidCache=null;render();renderModal();toast('Kind gespeichert')};
+A.saveBooking=el=>{
+  const f=fs;if(!f)return;const force=el.dataset.force==='1';f.err='';f.warn='';
+  if(!f.isSlot&&f.showNew&&(f.nc.firstName||f.nc.lastName)){const r=createChildFromNc(f.nc);if(typeof r==='string'){f.err=r;return renderModal()}f.childIds.push(r.id);f.nc={};f.showNew=false}
+  if(!f.isSlot&&!f.childIds.length){f.err='Bitte wähle ein Kind aus oder lege ein neues Kind an.';return renderModal()}
+  if(!f.date){f.err='Bitte wähle ein Datum.';return renderModal()}
+  if(!f.start||!f.end||toMin(f.end)<=toMin(f.start)){f.err='Die Endzeit muss nach der Startzeit liegen.';return renderModal()}
+  if(f.price===''||num(f.price)<0){f.err='Bitte gib einen gültigen Preis ein.';return renderModal()}
+  if(!f.typeId){f.err='Bitte wähle eine Trainingsart. Du kannst sie in den Einstellungen anlegen.';return renderModal()}
+  const status=f.isSlot?'open':f.status;
+  if(!force&&(status==='booked'||status==='confirmed'||status==='done')){
+    const cf=findConflict(f.id,f.date,f.start,f.end);
+    if(cf){f.warn='Zeitüberschneidung mit '+cf.start+'–'+cf.end+' ('+namesShort(cf)+'). Trotzdem speichern?';return renderModal()}
+  }
+  let b=f.id?getB(f.id):null;const isNew=!b;
+  if(isNew){b={id:uid(),trainerId:db.trainer.id};db.bookings.push(b)}
+  Object.assign(b,{childIds:f.isSlot?[]:f.childIds.slice(),typeId:f.typeId,date:f.date,start:f.start,end:f.end,price:num(f.price),status:status,notes:f.notes.trim()});
+  if(f.isSlot)applyPay(b,'open');
+  else if(status==='cancelled')applyPay(b,paidOf(b.id)>0?'refund':'open');
+  else applyPay(b,f.payStatus,num(f.partial));
+  fs=null;modals=[];
+  commit();
+  toast(isNew?'Buchung gespeichert':'Änderungen gespeichert');
+};
+A.setStatus=el=>{const b=getB(el.dataset.id);if(!b)return;b.status=el.dataset.s;commit();toast('Status: '+STATUS[b.status])};
+A.setPay=el=>{
+  const b=getB(el.dataset.id),m=top()||{};if(!b)return;const s=el.dataset.s;
+  if(s==='partial'){m.partial=true;renderModal();return}
+  m.partial=false;applyPay(b,s);commit();toast('Zahlung: '+PAY[b.payStatus]);
+};
+A.applyPartial=el=>{const b=getB(el.dataset.id);if(!b)return;const inp=$('#partialAmt');const a=num(inp&&inp.value);applyPay(b,'partial',a);top().partial=false;commit();toast('Zahlung: '+PAY[b.payStatus])};
+A.markPaid=el=>{const b=getB(el.dataset.id);if(!b)return;applyPay(b,'paid');commit();toast('Als bezahlt markiert')};
+A.cancelBooking=el=>{
+  const b=getB(el.dataset.id);if(!b)return;const prev=paidOf(b.id);
+  askConfirm('Training absagen?',prev>0?'Die bereits bezahlten '+money(prev)+' werden als Erstattung verbucht. Das Training zählt danach nicht mehr zu deinen Zahlen.':'Das Training zählt danach nicht mehr zu Trainings, Kindern und Einnahmen.','Absagen',()=>{b.status='cancelled';applyPay(b,paidOf(b.id)>0?'refund':'open');commit();toast('Training abgesagt')});
+};
+A.uncancel=el=>{const b=getB(el.dataset.id);if(!b)return;b.status='booked';applyPay(b,'open');commit();toast('Training wieder aktiv')};
+A.deleteBooking=el=>{
+  const id=el.dataset.id;
+  askConfirm('Buchung löschen?','Die Buchung wird endgültig gelöscht und aus allen Statistiken entfernt.','Löschen',()=>{db.bookings=db.bookings.filter(b=>b.id!==id);db.payments=db.payments.filter(p=>p.bookingId!==id);modals=[];commit();toast('Buchung gelöscht')});
+};
+A.moveBooking=el=>{const b=getB(el.dataset.id);if(!b)return;fs={id:b.id,date:b.date,start:b.start,end:b.end,err:'',warn:''};pushModal({isForm:true,render:moveHtml})};
+A.saveMove=el=>{
+  const f=fs;if(!f)return;const b=getB(f.id);if(!b)return;f.err='';
+  if(!f.date||!f.start||!f.end||toMin(f.end)<=toMin(f.start)){f.err='Bitte prüfe Datum und Uhrzeit. Die Endzeit muss nach der Startzeit liegen.';f.warn='';return renderModal()}
+  if(el.dataset.force!=='1'&&counted(b)){const cf=findConflict(b.id,f.date,f.start,f.end);if(cf){f.warn='Zeitüberschneidung mit '+cf.start+'–'+cf.end+' ('+namesShort(cf)+').';return renderModal()}}
+  b.date=f.date;b.start=f.start;b.end=f.end;closeModal();commit();toast('Termin verschoben');
+};
+A.wf=el=>{ui.wf=el.dataset.k;render()};
+A.calView=el=>{ui.calView=el.dataset.v;render()};
+A.calNav=el=>{const d=+el.dataset.d,v=ui.calView;ui.calDate=v==='day'?addDays(ui.calDate,d):v==='week'?addDays(ui.calDate,7*d):addMonths(ui.calDate,d);render()};
+A.calToday=()=>{ui.calDate=today();render()};
+A.calDay=el=>{ui.calDate=el.dataset.d;ui.calView='day';render()};
+A.period=el=>{const st=S(el.dataset.w);st.period=el.dataset.v;render()};
+A.pnav=el=>{const st=S(el.dataset.w);st.anchor=shiftAnchor(st.period,st.anchor,+el.dataset.d);render()};
+A.pnow=el=>{S(el.dataset.w).anchor=today();render()};
+A.newChild=()=>openChildForm(null);
+A.openChild=el=>openChildDetail(el.dataset.id);
+A.editChild=el=>openChildForm(child(el.dataset.id));
+A.bookForChild=el=>{openBookingForm({childIds:[el.dataset.id]})};
+A.saveChild=()=>{
+  const f=fs;if(!f)return;f.err='';
+  const fn=f.firstName.trim(),ln=f.lastName.trim(),age=parseInt(f.age,10);
+  if(!fn||!ln){f.err='Bitte gib Vor- und Nachname ein.';return renderModal()}
+  if(!age||age<2||age>99){f.err='Bitte gib ein gültiges Alter ein.';return renderModal()}
+  let c=f.id?child(f.id):null;const isNew=!c;
+  if(isNew){c={id:uid(),trainerId:db.trainer.id};db.children.push(c)}
+  Object.assign(c,{firstName:fn,lastName:ln,age:age,parentName:f.parentName.trim(),phone:f.phone.trim(),email:f.email.trim(),notes:f.notes.trim()});
+  closeModal();commit();toast(isNew?'Kind gespeichert':'Änderungen gespeichert');
+};
+A.deleteChild=el=>{
+  const id=el.dataset.id,c=child(id);if(!c)return;
+  const used=db.bookings.filter(b=>b.childIds.indexOf(id)>=0).length;
+  if(used){toast('Nicht möglich: '+c.firstName+' hat '+used+' Buchung'+(used>1?'en':'')+'. Lösche zuerst die Buchungen.');return}
+  askConfirm('Kind löschen?',cname(c)+' wird aus deiner Liste entfernt.','Löschen',()=>{db.children=db.children.filter(x=>x.id!==id);modals=[];commit();toast('Kind gelöscht')});
+};
+A.theme=el=>{theme=el.dataset.v;store.set(THEME_KEY,theme);applyTheme();render()};
+A.addType=()=>{
+  const n=($('#ntName').value||'').trim(),p=$('#ntPrice').value;
+  if(!n){toast('Bitte gib einen Namen ein.');return}
+  db.types.push({id:uid(),trainerId:db.trainer.id,name:n,price:num(p)});commit();toast('Trainingsart hinzugefügt');
+};
+A.delType=el=>{
+  const id=el.dataset.id,used=db.bookings.filter(b=>b.typeId===id).length;
+  if(used){toast('Wird in '+used+' Buchung'+(used>1?'en':'')+' verwendet und kann nicht gelöscht werden.');return}
+  if(db.types.length<=1){toast('Mindestens eine Trainingsart muss bleiben.');return}
+  db.types=db.types.filter(t=>t.id!==id);commit();toast('Trainingsart gelöscht');
+};
+A.resetDemo=()=>askConfirm('Demodaten neu laden?','Alle aktuellen Daten werden durch frische Beispieldaten ersetzt.','Neu laden',()=>{const n=db.trainer.name;db=makeDemo();db.trainer.name=n;modals=[];commit();toast('Demodaten geladen')});
+A.clearAll=()=>askConfirm('Alle Daten löschen?','Kinder, Buchungen und Zahlungen werden entfernt. Trainingsarten bleiben erhalten.','Alles löschen',()=>{const n=db.trainer.name,ty=db.types;db=emptyDb();db.trainer.name=n;db.types=ty;modals=[];commit();toast('Alle Daten gelöscht')});
+
+/* Änderungs-Handler (select) */
+const CH={};
+CH.flt=el=>{S(el.dataset.w)[el.dataset.k]=el.value;render()};
+CH.pickChild=el=>{if(el.value&&fs){fs.childIds.push(el.value);renderModal()}};
+CH.fType=el=>{if(!fs)return;fs.typeId=el.value;const t=typeOf(el.value);if(t)fs.price=String(t.price);renderModal()};
+CH.fStart=el=>{
+  if(!fs||!el.value)return;
+  const d=Math.max(15,toMin(fs.end)-toMin(fs.start))||60;
+  fs.start=el.value;fs.end=fromMin(Math.min(23*60+59,toMin(el.value)+d));renderModal();
+};
+
+/* ================= Events ================= */
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.classList&&t.classList.contains('ov')){const m=top();if(m&&!m.isForm)closeModal();return}
+  const el=t.closest?t.closest('[data-a]'):null;if(!el)return;
+  const fn=A[el.dataset.a];if(fn)fn(el,e);
+});
+document.addEventListener('input',e=>{
+  const el=e.target,d=el.dataset||{};
+  if(d.f&&fs){setPath(fs,d.f,el.type==='checkbox'?el.checked:el.value);
+    if(d.f==='price'){const tt=$('#ftotal');if(tt)tt.textContent=money(num(el.value)*Math.max(1,fs.childIds.length))}}
+  else if(el.id==='q'){ui.q=el.value;const l=$('#kidlist');if(l)l.innerHTML=kidList()}
+  else if(d.s==='trainer'){db.trainer.name=el.value.trim()||'Trainer';save();renderNav()}
+  else if(d.tf){const t=typeOf(d.id);if(t){if(d.tf==='name')t.name=el.value;else t.price=num(el.value);save()}}
+});
+document.addEventListener('change',e=>{
+  const el=e.target,d=el.dataset||{};
+  if(d.ch&&CH[d.ch]){CH[d.ch](el);return}
+  if(d.f&&d.re&&fs){setPath(fs,d.f,el.type==='checkbox'?el.checked:el.value);
+    if(d.f==='status'&&el.value==='cancelled')fs.payStatus='open';
+    renderModal()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&top())closeModal()});
+
+/* ================= Start ================= */
+applyTheme();
+render();
+try{if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js')}catch(e){}
+window.__trainer={ui:ui,pages:pages,A:A,render:render,getDb:()=>db,stats:stats,openDetail:openDetail,openBookingForm:openBookingForm,formHtml:()=>formHtml(),getFs:()=>fs,modals:()=>modals};
+})();
+</script>
+</body>
+</html>
